@@ -327,6 +327,7 @@ def initialize_database():
     conn = get_connection()
     c = conn.cursor()
 
+    print("DATABASE INITIALIZATION STARTED")
     # -----------------------------
     # CLIENTS
     # -----------------------------
@@ -478,9 +479,12 @@ CREATE TABLE IF NOT EXISTS users (
 
 )
 """)
-    conn.commit()
-    conn.close()
+    try:
+        conn.commit()
+    except Exception:
+        pass
 
+    conn.close()
 
 # =====================================================
 # CLIENTS

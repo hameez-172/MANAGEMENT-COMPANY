@@ -6,3 +6,4 @@ fpdf2
 bcrypt
 requests
 matplotlib
+reportlab

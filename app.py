@@ -29,7 +29,7 @@ from utils import set_page
 # PAGE CONFIG
 # ==========================================
 
-set_page("Enterprise ERP")
+set_page("BADAR DIAGNOSTICS & MEDICAL EQUIPMENTS")
 
 
 # ==========================================
@@ -53,7 +53,7 @@ if not is_logged_in():
 # SIDEBAR
 # ==========================================
 
-st.sidebar.title("🏢 Enterprise ERP")
+st.sidebar.title("🏢 BADAR DIAGNOSTICS & MEDICAL EQUIPMENTS")
 
 show_user_info()
 

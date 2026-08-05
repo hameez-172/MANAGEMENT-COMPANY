@@ -1,6 +1,8 @@
 streamlit
 pandas
 plotly
+openpyxl
 fpdf2
-requests
 bcrypt
+requests
+matplotlib

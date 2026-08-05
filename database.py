@@ -289,6 +289,36 @@ def read_sql(query, params=None):
     return df
 
 # =====================================================
+# GENERIC QUERY FUNCTIONS
+# =====================================================
+
+def execute_query(query, params=None):
+    """
+    Execute INSERT, UPDATE, DELETE queries
+    """
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        query,
+        params or ()
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def fetch_dataframe(query, params=None):
+    """
+    Execute SELECT queries and return pandas DataFrame
+    """
+
+    return read_sql(
+        query,
+        params
+    )
+# =====================================================
 # DATABASE INITIALIZATION
 # =====================================================
 

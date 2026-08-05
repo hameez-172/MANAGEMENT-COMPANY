@@ -461,8 +461,8 @@ def initialize_database():
     """)
 
     # -----------------------------
-# USERS
-# -----------------------------
+    # USERS
+    # -----------------------------
 
     c.execute("""
 CREATE TABLE IF NOT EXISTS users (
@@ -473,12 +473,15 @@ CREATE TABLE IF NOT EXISTS users (
 
     password TEXT NOT NULL,
 
-    role TEXT DEFAULT 'user',
+    full_name TEXT,
+
+    role TEXT DEFAULT 'Staff',
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
 )
 """)
+
     try:
         conn.commit()
     except Exception:

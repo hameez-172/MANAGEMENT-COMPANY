@@ -635,3 +635,37 @@ def business_analytics():
         "text/csv",
         use_container_width=True
     )
+
+import pandas as pd
+from database import get_connection
+
+def get_dashboard_summary():
+
+    conn = get_connection()
+
+    stats = {}
+
+    queries = {
+        "Revenue": "SELECT COALESCE(SUM(total),0) FROM sales",
+        "Profit": "SELECT COALESCE(SUM(profit),0) FROM sales",
+        "Purchases": "SELECT COALESCE(SUM(total),0) FROM purchases",
+        "Expenses": "SELECT COALESCE(SUM(cost),0) FROM business_deals",
+        "Customers": "SELECT COUNT(*) FROM customers",
+        "Suppliers": "SELECT COUNT(*) FROM suppliers",
+        "Products": "SELECT COUNT(*) FROM inventory",
+        "Sales": "SELECT COUNT(*) FROM sales",
+        "Purchase Orders": "SELECT COUNT(*) FROM purchases"
+    }
+
+    cur = conn.cursor()
+
+    for key, query in queries.items():
+        try:
+            cur.execute(query)
+            stats[key] = cur.fetchone()[0] or 0
+        except:
+            stats[key] = 0
+
+    conn.close()
+
+    return stats

@@ -544,6 +544,27 @@ def sales_dashboard():
     }
 
 
+def get_monthly_profit():
+    """
+    Monthly profit report.
+    """
+
+    conn = get_connection()
+
+    df = pd.read_sql_query("""
+        SELECT
+            substr(sales.sale_date,1,7) AS Month,
+            SUM(sale_items.total) AS Revenue
+        FROM sale_items
+        JOIN sales
+        ON sales.id = sale_items.sale_id
+        GROUP BY Month
+        ORDER BY Month
+    """, conn)
+
+    conn.close()
+
+    return df
 # ==========================================
 # TEST
 # ==========================================

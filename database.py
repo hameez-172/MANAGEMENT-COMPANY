@@ -520,7 +520,7 @@ CREATE TABLE IF NOT EXISTS sale_items (
 
     sale_id INTEGER,
 
-    product_name TEXT,
+    product_id INTEGER,
 
     quantity INTEGER DEFAULT 1,
 
@@ -529,10 +529,59 @@ CREATE TABLE IF NOT EXISTS sale_items (
     total REAL DEFAULT 0,
 
     FOREIGN KEY(sale_id)
-    REFERENCES sales(id)
+    REFERENCES sales(id),
+
+    FOREIGN KEY(product_id)
+    REFERENCES products(id)
 
 )
 """)
+    # -----------------------------
+    # PRODUCTS
+    # -----------------------------
+
+    c.execute("""
+CREATE TABLE IF NOT EXISTS products (
+
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    product_name TEXT NOT NULL,
+
+    cost_price REAL DEFAULT 0,
+
+    selling_price REAL DEFAULT 0,
+
+    quantity INTEGER DEFAULT 0,
+
+    minimum_stock INTEGER DEFAULT 5,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+)
+""")
+    # -----------------------------
+    # INVENTORY
+    # -----------------------------
+
+    c.execute("""
+CREATE TABLE IF NOT EXISTS inventory (
+
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    product_id INTEGER,
+
+    quantity INTEGER DEFAULT 0,
+
+    minimum_stock INTEGER DEFAULT 5,
+
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY(product_id)
+    REFERENCES products(id)
+
+)
+""")
+
     # -----------------------------
     # SETTINGS
     # -----------------------------
@@ -646,7 +695,8 @@ CREATE TABLE IF NOT EXISTS backups (
     c.execute(
     "CREATE INDEX IF NOT EXISTS idx_expense_date ON expenses(expense_date)"
 )
-
+    conn.commit()
+    conn.close()
 
 # =====================================================
 # CLIENTS

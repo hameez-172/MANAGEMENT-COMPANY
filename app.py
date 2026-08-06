@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 import hashlib
+from analytics import get_dashboard_summary
 
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -349,6 +350,18 @@ logout_button()
 # PAGE TITLE
 # ==========================================
 
+st.markdown(
+
+f"""
+# 🏢 Enterprise ERP
+
+## {menu}
+
+""",
+
+unsafe_allow_html=True
+
+)
 
 # ==========================================
 # DASHBOARD

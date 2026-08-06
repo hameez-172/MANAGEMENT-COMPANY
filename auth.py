@@ -87,9 +87,6 @@ def username_exists(username):
 # ==========================================
 
 def login(username, password):
-    """
-    Login user.
-    """
 
     conn = get_connection()
 
@@ -99,31 +96,27 @@ def login(username, password):
         WHERE username=?
     """, conn, params=(username,))
 
-    conn.close()
+    print(df)
 
     if df.empty:
+        print("User not found")
+        conn.close()
         return False
 
     user = df.iloc[0]
 
-    if not verify_password(
-        password,
-        user["password"]
-    ):
+    print("Entered Password:", password)
+    print("Database Password:", user["password"])
+    print("Hash of Entered:", hash_password(password))
+    print("Password Match:", verify_password(password, user["password"]))
+
+    conn.close()
+
+    if not verify_password(password, user["password"]):
         return False
 
-    st.session_state["logged_in"] = True
-
-    st.session_state["user_id"] = int(user["id"])
-
-    st.session_state["username"] = user["username"]
-
-    st.session_state["full_name"] = user["full_name"]
-
-    st.session_state["role"] = user["role"]
-
+    print("Login Success")
     return True
-
 
 def logout():
     """

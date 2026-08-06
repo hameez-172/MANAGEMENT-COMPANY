@@ -483,6 +483,57 @@ def initialize_database():
     """)
 
     # -----------------------------
+    # SALES
+    # -----------------------------
+
+    c.execute("""
+CREATE TABLE IF NOT EXISTS sales (
+
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    customer_name TEXT,
+
+    invoice_no TEXT UNIQUE,
+
+    sale_date TEXT,
+
+    payment_method TEXT,
+
+    notes TEXT,
+
+    total REAL DEFAULT 0,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+)
+""")
+
+
+    # -----------------------------
+    # SALE ITEMS
+    # -----------------------------
+
+    c.execute("""
+CREATE TABLE IF NOT EXISTS sale_items (
+
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    sale_id INTEGER,
+
+    product_name TEXT,
+
+    quantity INTEGER DEFAULT 1,
+
+    price REAL DEFAULT 0,
+
+    total REAL DEFAULT 0,
+
+    FOREIGN KEY(sale_id)
+    REFERENCES sales(id)
+
+)
+""")
+    # -----------------------------
     # SETTINGS
     # -----------------------------
 
@@ -1563,3 +1614,5 @@ def initialize_auth():
 initialize_database()
 initialize_auth()
 
+df = fetch_dataframe("SELECT username,password FROM users")
+print(df)

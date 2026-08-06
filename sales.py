@@ -566,31 +566,6 @@ def get_monthly_profit():
 
     return df
 
-def get_monthly_profit():
-    """
-    Monthly profit report.
-    """
-
-    conn = get_connection()
-
-    df = pd.read_sql_query("""
-        SELECT
-            substr(sale_date,1,7) AS Month,
-            SUM(sale_items.total - (products.cost_price * sale_items.quantity)) AS Profit
-        FROM sale_items
-        JOIN sales
-        ON sales.id = sale_items.sale_id
-        JOIN products
-        ON products.id = sale_items.product_id
-        GROUP BY Month
-        ORDER BY Month
-    """, conn)
-
-    conn.close()
-
-    return df
-
-
 
 def get_top_customers(limit=10):
     """

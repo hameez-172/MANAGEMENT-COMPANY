@@ -438,30 +438,18 @@ def current_username():
 # ==========================================
 
 def initialize_auth():
-    """
-    Create default admin if no users exist.
-    """
 
     conn = get_connection()
+    cur = conn.cursor()
 
-    df = pd.read_sql_query("""
-        SELECT COUNT(*) AS total
-        FROM users
-    """, conn)
+    cur.execute("""
+        UPDATE users
+        SET password=?
+        WHERE username='admin'
+    """, (hash_password("admin123"),))
 
-    conn.close()
-
-    if df.iloc[0]["total"] == 0:
-
-        create_user(
-            username="admin",
-            password="admin123",
-            full_name="System Administrator",
-            role="Admin"
-        )
-
-
-# ==========================================
+    conn.commit()
+    conn.close()# ==========================================
 # STREAMLIT LOGIN FORM
 # ==========================================
 

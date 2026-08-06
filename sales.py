@@ -382,8 +382,8 @@ def get_monthly_sales():
 
     df = pd.read_sql_query("""
         SELECT
-            substr(sale_date,1,7) AS Month,
-            SUM(total) AS Revenue
+            substr(sales.sale_date,1,7) AS Month,
+            SUM(sale_items.total) AS Revenue
         FROM sale_items
         JOIN sales
         ON sales.id = sale_items.sale_id
@@ -394,7 +394,6 @@ def get_monthly_sales():
     conn.close()
 
     return df
-
 
 def get_customer_sales_summary():
     """

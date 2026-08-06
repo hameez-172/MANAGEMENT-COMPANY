@@ -349,18 +349,6 @@ logout_button()
 # PAGE TITLE
 # ==========================================
 
-st.markdown(
-
-f"""
-# 🏢 Enterprise ERP
-
-## {menu}
-
-""",
-
-unsafe_allow_html=True
-
-)
 
 # ==========================================
 # DASHBOARD

@@ -96,28 +96,25 @@ def login(username, password):
         WHERE username=?
     """, conn, params=(username,))
 
-    print(df)
+    conn.close()
 
     if df.empty:
-        print("User not found")
-        conn.close()
         return False
 
     user = df.iloc[0]
 
-    print("Entered Password:", password)
-    print("Database Password:", user["password"])
-    print("Hash of Entered:", hash_password(password))
-    print("Password Match:", verify_password(password, user["password"]))
-
-    conn.close()
-
     if not verify_password(password, user["password"]):
         return False
 
-    print("Login Success")
-    return True
+    # IMPORTANT
+    st.session_state["logged_in"] = True
+    st.session_state["user_id"] = int(user["id"])
+    st.session_state["username"] = user["username"]
+    st.session_state["full_name"] = user["full_name"]
+    st.session_state["role"] = user["role"]
 
+    return True
+    
 def logout():
     """
     Logout current user.
@@ -449,7 +446,8 @@ def initialize_auth():
     """, (hash_password("admin123"),))
 
     conn.commit()
-    conn.close()# ==========================================
+    conn.close()
+# ==========================================
 # STREAMLIT LOGIN FORM
 # ==========================================
 

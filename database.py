@@ -256,57 +256,95 @@ def get_connection():
 
     return sqlite3.connect(LOCAL_DATABASE)
 
+# =====================================================
+# SAFE DATABASE CONNECTION
+# =====================================================
 
+@contextmanager
+def db_connection():
+
+    conn = get_connection()
+
+    try:
+
+        yield conn
+
+        try:
+            conn.commit()
+        except Exception:
+            pass
+
+    except Exception:
+
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+
+        raise
+
+    finally:
+
+        conn.close()
 # =====================================================
 # READ SQL
 # =====================================================
 
 def read_sql(query, params=None):
 
-    conn = get_connection()
+    try:
 
-    cursor = conn.cursor()
+        with db_connection() as conn:
 
-    cursor.execute(
-        query,
-        params or ()
-    )
+            cursor = conn.cursor()
 
-    columns = [
-        col[0]
-        for col in cursor.description
-    ]
+            cursor.execute(
+                query,
+                params or ()
+            )
 
-    rows = cursor.fetchall()
+            columns = [
+                col[0]
+                for col in cursor.description
+            ]
 
-    df = pd.DataFrame(
-        rows,
-        columns=columns
-    )
+            rows = cursor.fetchall()
 
-    conn.close()
+            return pd.DataFrame(
+                rows,
+                columns=columns
+            )
 
-    return df
+    except Exception as e:
+
+        st.error(f"Read Error: {e}")
+
+        return pd.DataFrame()
 
 # =====================================================
 # GENERIC QUERY FUNCTIONS
 # =====================================================
 
 def execute_query(query, params=None):
-    """
-    Execute INSERT, UPDATE, DELETE queries
-    """
 
-    conn = get_connection()
-    cursor = conn.cursor()
+    try:
 
-    cursor.execute(
-        query,
-        params or ()
-    )
+        with db_connection() as conn:
 
-    conn.commit()
-    conn.close()
+            cursor = conn.cursor()
+
+            cursor.execute(
+                query,
+                params or ()
+            )
+
+        return True
+
+    except Exception as e:
+
+        st.error(f"Database Error: {e}")
+
+        return False
 
 
 def fetch_dataframe(query, params=None):
@@ -481,13 +519,83 @@ CREATE TABLE IF NOT EXISTS users (
 
 )
 """)
+    # -----------------------------
+    # ACTIVITY LOGS
+    # -----------------------------
 
-    try:
-        conn.commit()
-    except Exception:
-        pass
+    c.execute("""
+CREATE TABLE IF NOT EXISTS activity_logs (
 
-    conn.close()
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    username TEXT,
+
+    action TEXT,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+)
+""")
+
+    # -----------------------------
+    # NOTIFICATIONS
+    # -----------------------------
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS notifications (
+
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    title TEXT,
+
+    message TEXT,
+
+    is_read INTEGER DEFAULT 0,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+)
+""")
+
+    # -----------------------------
+    # BACKUPS
+    # -----------------------------
+
+    c.execute("""
+CREATE TABLE IF NOT EXISTS backups (
+
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    filename TEXT,
+
+    backup_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+)
+""")
+    # =====================================================
+    # INDEXES
+    # =====================================================
+
+    c.execute(
+    "CREATE INDEX IF NOT EXISTS idx_client_name ON clients(client_name)"
+)
+
+    c.execute(
+    "CREATE INDEX IF NOT EXISTS idx_deal_client ON deals(client_name)"
+)
+
+    c.execute(
+    "CREATE INDEX IF NOT EXISTS idx_deal_status ON deals(status)"
+)
+
+    c.execute(
+    "CREATE INDEX IF NOT EXISTS idx_invoice_status ON invoices(status)"
+)
+
+    c.execute(
+    "CREATE INDEX IF NOT EXISTS idx_expense_date ON expenses(expense_date)"
+)
+
 
 # =====================================================
 # CLIENTS
@@ -1374,9 +1482,84 @@ def database_health():
 
     return health
 
+# =====================================================
+# AUTHENTICATION
+# =====================================================
 
+def create_user(username, password, full_name, role="Staff"):
+
+    execute_query(
+        """
+        INSERT INTO users(username, password, full_name, role)
+        VALUES(?,?,?,?)
+        """,
+        (username, password, full_name, role)
+    )
+
+
+def get_user(username):
+
+    df = fetch_dataframe(
+        """
+        SELECT *
+        FROM users
+        WHERE username=?
+        """,
+        (username,)
+    )
+
+    if df.empty:
+        return None
+
+    return df.iloc[0]
+
+
+def validate_login(username, password):
+
+    df = fetch_dataframe(
+        """
+        SELECT *
+        FROM users
+        WHERE username=? AND password=?
+        """,
+        (username, password)
+    )
+
+    return not df.empty
+
+
+def get_all_users():
+
+    return fetch_dataframe(
+        """
+        SELECT id, username, full_name, role, created_at
+        FROM users
+        ORDER BY username
+        """
+    )
+
+
+def delete_user(user_id):
+
+    execute_query(
+        "DELETE FROM users WHERE id=?",
+        (user_id,)
+    )
+
+def initialize_auth():
+
+    if get_user("admin") is None:
+
+        create_user(
+            "admin",
+            "admin123",
+            "Administrator",
+            "Admin"
+        )
 # ==========================================================
 # INITIALIZE
 # ==========================================================
 
 initialize_database()
+initialize_auth()
+

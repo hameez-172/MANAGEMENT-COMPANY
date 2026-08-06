@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-
+import matplotlib.pyplot as plt
 from database import (
     add_deal,
     get_deals,
@@ -10,7 +10,7 @@ from database import (
 )
 
 
-def business_page():
+def business_tab():
 
     st.title("💼 Business Deals")
 
@@ -60,18 +60,6 @@ def business_page():
 
     with tab3:
         payment_history_tab()
-
-
-def add_deal_tab():
-    pass
-
-
-def manage_deals_tab():
-    pass
-
-
-def payment_history_tab():
-    pass
 
 def add_deal_tab():
 
@@ -166,162 +154,6 @@ def add_deal_tab():
 
                 st.success("✅ Deal added successfully.")
 
-                st.rerun()
-
-def manage_deals_tab():
-
-    st.subheader("Manage Deals")
-
-    deals = get_deals()
-
-    if deals.empty:
-        st.info("No deals found.")
-        return
-
-    col1, col2 = st.columns([2, 1])
-
-    with col1:
-        search = st.text_input(
-            "🔍 Search Client or Service"
-        )
-
-    with col2:
-        status_filter = st.selectbox(
-            "Status",
-            [
-                "All",
-                "Pending",
-                "Partial",
-                "Paid"
-            ]
-        )
-
-    filtered = deals.copy()
-
-    if search:
-
-        search = search.lower()
-
-        filtered = filtered[
-            filtered["client_name"].str.lower().str.contains(search)
-            |
-            filtered["service"].str.lower().str.contains(search)
-        ]
-
-    if status_filter != "All":
-
-        filtered = filtered[
-            filtered["status"] == status_filter
-        ]
-
-    st.dataframe(
-        filtered,
-        use_container_width=True,
-        hide_index=True
-    )
-
-    st.download_button(
-        "📥 Export CSV",
-        filtered.to_csv(index=False).encode("utf-8"),
-        "deals.csv",
-        "text/csv"
-    )
-
-    st.divider()
-
-    st.subheader("Edit / Delete Deal")
-
-    selected = st.selectbox(
-        "Select Deal",
-        filtered["id"]
-    )
-
-    deal = filtered[
-        filtered["id"] == selected
-    ].iloc[0]
-
-    with st.form("edit_deal"):
-
-        client_name = st.text_input(
-            "Client Name",
-            value=deal["client_name"]
-        )
-
-        service = st.text_input(
-            "Service",
-            value=deal["service"]
-        )
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-
-            deal_value = st.number_input(
-                "Deal Value",
-                value=float(deal["deal_value"])
-            )
-
-            cost = st.number_input(
-                "Cost",
-                value=float(deal["cost"])
-            )
-
-            sent_payment = st.number_input(
-                "Payment Received",
-                value=float(deal["sent_payment"])
-            )
-
-        with col2:
-
-            payment_method = st.text_input(
-                "Payment Method",
-                value=deal["payment_method"]
-            )
-
-            due_date = st.text_input(
-                "Due Date",
-                value=str(deal["due_date"])
-            )
-
-        notes = st.text_area(
-            "Notes",
-            value=deal["notes"]
-        )
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-
-            if st.form_submit_button(
-                "💾 Update",
-                use_container_width=True
-            ):
-
-                update_deal(
-                    selected,
-                    client_name,
-                    service,
-                    deal_value,
-                    cost,
-                    sent_payment,
-                    payment_method,
-                    due_date,
-                    notes
-                )
-
-                st.success("Deal updated successfully.")
-                st.rerun()
-
-        with col2:
-
-            if st.form_submit_button(
-                "🗑 Delete",
-                use_container_width=True
-            ):
-
-                delete_deal(selected)
-
-                st.success("Deal deleted successfully.")
                 st.rerun()
 
 def manage_deals_tab():
@@ -668,9 +500,6 @@ def payment_history_tab():
         use_container_width=True
     )
 
-import matplotlib.pyplot as plt
-
-
 def business_analytics():
 
     st.header("📊 Business Analytics")
@@ -766,3 +595,43 @@ def business_analytics():
 
     st.pyplot(fig3)
 
+
+    st.divider()
+
+    st.subheader("Business Summary")
+
+    summary = pd.DataFrame({
+
+        "Metric": [
+            "Total Deals",
+            "Revenue",
+            "Profit",
+            "Received",
+            "Remaining"
+        ],
+
+        "Value": [
+            len(deals),
+            deals["deal_value"].sum(),
+            deals["profit"].sum(),
+            deals["sent_payment"].sum(),
+            deals["remaining"].sum()
+        ]
+
+    })
+
+    st.dataframe(
+        summary,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    csv = summary.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+        "📥 Download Summary",
+        csv,
+        "business_summary.csv",
+        "text/csv",
+        use_container_width=True
+    )
